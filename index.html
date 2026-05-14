@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo</title>
+
+<style>
+body { font-family: Arial; background:#000; color:gold; text-align:center; }
+h1 { color:red; }
+
+.screen { display:none; }
+.active { display:block; }
+
+button {
+  padding:15px;
+  margin:10px;
+  border:none;
+  border-radius:10px;
+  background:gold;
+  width:85%;
+}
+
+input { padding:10px; margin:5px; }
+
+.card {
+  border:1px solid gold;
+  margin:10px;
+  padding:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🎰 Torneo Del Porcodidio</h1>
+
+<div id="home" class="active">
+<button id="goTournament">▶️ Nuovo Torneo</button>
+<button id="goPlayers">👥 Giocatori</button>
+<button id="goGames">🎮 Giochi</button>
+<button id="goPalmares">🏆 Palmares</button>
+</div>
+
+<div id="players" class="screen">
+<input id="playerInput">
+<button id="addPlayer">Aggiungi</button>
+<div id="playerList"></div>
+<button class="back">⬅️</button>
+</div>
+
+<div id="games" class="screen">
+<input id="gameInput">
+<button id="addGame">Aggiungi Gioco</button>
+<div id="gameList"></div>
+<button class="back">⬅️</button>
+</div>
+
+<div id="palmares" class="screen">
+<div id="palmaresList"></div>
+<button class="back">⬅️</button>
+</div>
+
+<div id="tournament" class="screen">
+<div id="tournamentArea"></div>
+<button id="finish">Fine Torneo</button>
+<button class="back">⬅️</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+let players = JSON.parse(localStorage.getItem("players")||"[]");
+let games = JSON.parse(localStorage.getItem("games")||["UNO","31"]);
+let palmares = JSON.parse(localStorage.getItem("palmares")||"[]");
+
+let scores = {};
+
+function show(id){
+document.querySelectorAll("#home, .screen").forEach(el=>el.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+function renderPlayers(){
+let d=document.getElementById("playerList");
+d.innerHTML="";
+players.forEach(p=>d.innerHTML+=p+"<br>");
+}
+
+function renderGames(){
+let d=document.getElementById("gameList");
+d.innerHTML="";
+games.forEach(g=>d.innerHTML+=g+"<br>");
+}
+
+function renderPalmares(){
+let d=document.getElementById("palmaresList");
+d.innerHTML="";
+palmares.forEach((p,i)=>d.innerHTML+="Torneo "+(i+1)+": "+p+"<br>");
+}
+
+document.getElementById("goPlayers").onclick=function(){
+show("players"); renderPlayers();
+};
+
+document.getElementById("goGames").onclick=function(){
+show("games"); renderGames();
+};
+
+document.getElementById("goPalmares").onclick=function(){
+show("palmares"); renderPalmares();
+};
+
+document.getElementById("goTournament").onclick=function(){
+show("tournament");
+
+let area=document.getElementById("tournamentArea");
+area.innerHTML="";
+
+scores={};
+players.forEach(p=>scores[p]=0);
+
+games.forEach(g=>{
+area.innerHTML+="<div class='card'><b>"+g+"</b><br>";
+players.forEach(p=>{
+area.innerHTML+=p+" <input id='"+g+p+"' type='number' value='0'><br>";
+});
+area.innerHTML+="</div>";
+});
+};
+
+document.getElementById("addPlayer").onclick=function(){
+let n=document.getElementById("playerInput").value;
+if(n){
+players.push(n);
+localStorage.setItem("players",JSON.stringify(players));
+renderPlayers();
+}
+};
+
+document.getElementById("addGame").onclick=function(){
+let g=document.getElementById("gameInput").value;
+if(g){
+games.push(g);
+localStorage.setItem("games",JSON.stringify(games));
+renderGames();
+}
+};
+
+document.getElementById("finish").onclick=function(){
+games.forEach(g=>{
+players.forEach(p=>{
+let val=parseInt(document.getElementById(g+p).value)||0;
+scores[p]+=val;
+});
+});
+
+let arr=players.map(p=>({name:p,score:scores[p]}));
+arr.sort((a,b)=>b.score-a.score);
+
+let winner=arr[0].name;
+palmares.push(winner);
+localStorage.setItem("palmares",JSON.stringify(palmares));
+
+alert("Vincitore: "+winner);
+show("home");
+};
+
+document.querySelectorAll(".back").forEach(b=>{
+b.onclick=function(){ show("home"); };
+});
+
+});
+</script>
+
+</body>
+</html>
